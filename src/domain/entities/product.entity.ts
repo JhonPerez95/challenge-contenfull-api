@@ -1,3 +1,4 @@
+// TODO: por confirmar tipos, las credenciales no sirven del contentful para confirmar la respuesta
 export class Product {
   id: string;
   sku: string;
@@ -16,9 +17,6 @@ export class Product {
   constructor(partial: Partial<Product>) {
     Object.assign(this, partial);
   }
-
-  // Métodos de lógica de negocio
-
   isDeleted(): boolean {
     return this.deletedAt !== null;
   }
