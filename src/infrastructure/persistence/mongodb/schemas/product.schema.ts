@@ -9,7 +9,7 @@ import { Document } from 'mongoose';
   collection: 'products',
 })
 export class ProductDocument extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ type: String, required: true, unique: true })
   sku: string;
 
   @Prop({ required: true })
@@ -44,8 +44,6 @@ export class ProductDocument extends Document {
 export const ProductSchema = SchemaFactory.createForClass(ProductDocument);
 
 // Rendimiento
-ProductSchema.index({ name: 1 });
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ price: 1 });
 ProductSchema.index({ deletedAt: 1 });
-ProductSchema.index({ sku: 1 }, { unique: true });
