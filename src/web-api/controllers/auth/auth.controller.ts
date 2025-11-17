@@ -18,10 +18,21 @@ import {
   IAuthService,
   AUTH_SERVICE,
 } from '../../../domain/services/auth.service.interface';
+
 import { JwtAuthGuard } from '../../../infrastructure/auth/guards/jwt-auth.guard';
+
 import { LoginResponseDto } from '../../dtos/auth/login-response.dto';
+import {
+  InternalServerErrorDto,
+  UnauthorizedErrorDto,
+} from '../../dtos/common/errors.dto';
 
 @ApiTags('Authentication')
+@ApiResponse({
+  status: 500,
+  description: 'Internal server error',
+  type: InternalServerErrorDto,
+})
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -46,7 +57,11 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Test protected route' })
   @ApiResponse({ status: 200, description: 'Access granted' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+    type: UnauthorizedErrorDto,
+  })
   getProfile(): { message: string } {
     return { message: 'This is a protected route!' };
   }
