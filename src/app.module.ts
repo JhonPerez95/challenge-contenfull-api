@@ -6,6 +6,8 @@ import { MongodbModule } from './infrastructure/modules/mongodb.module';
 import { envs } from './infrastructure/config/env';
 import { LoggingModule } from './infrastructure/modules/logging.module';
 import { ProductModule } from './web-api/modules/product/product.module';
+import { ContentfulService } from './infrastructure/external-services/contentful/contentful.service';
+import { ContentfulModule } from './infrastructure/modules/contentful.module';
 
 @Module({
   imports: [
@@ -16,8 +18,9 @@ import { ProductModule } from './web-api/modules/product/product.module';
     MongodbModule,
     LoggingModule,
     ProductModule,
+    ContentfulModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ContentfulService],
 })
 export class AppModule {}
