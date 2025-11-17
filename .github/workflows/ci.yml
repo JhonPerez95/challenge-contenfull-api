@@ -35,6 +35,8 @@ jobs:
         run: npm run lint
       - name: Run coverage
         run: npm run test:cov
+        - name: Mostrar porcentaje de cobertura
+          run: node coverage-summary.js
       - name: Check coverage threshold
         run: |
           if [ ! -f ./coverage/coverage-final.json ]; then
