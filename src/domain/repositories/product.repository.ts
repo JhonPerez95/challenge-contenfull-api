@@ -29,6 +29,7 @@ export interface IProductRepository {
   findById(id: string): Promise<Product | null>;
   update(id: string, product: Partial<Product>): Promise<Product>;
   softDelete(id: string): Promise<void>;
+  upsert(product: Product): Promise<Product>;
 
   // Búsqueda con filtros y paginación
   findByFilters(filters: ProductFilters): Promise<PaginatedResult<Product>>;
