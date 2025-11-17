@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { envs } from '../../config/env';
+import { envs } from '../config/env';
 import {
   ProductDocument,
   ProductSchema,

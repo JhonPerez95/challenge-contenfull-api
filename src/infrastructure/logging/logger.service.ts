@@ -1,5 +1,5 @@
 import { Injectable, LoggerService, LogLevel } from '@nestjs/common';
-import { envs } from 'src/config/env';
+import { envs } from 'src/infrastructure/config/env';
 import { Environments } from 'src/domain/enums/envieroments.enum';
 
 @Injectable()
