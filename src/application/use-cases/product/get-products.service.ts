@@ -6,12 +6,11 @@ import {
   PaginatedResult,
 } from '../../../domain/repositories/product.repository';
 import { Product } from '../../../domain/entities/product.entity';
-import { AppLoggerService } from '../../../infrastructure/logging/logger.service';
 import { IGetProductsUseCase } from '../../../domain/use-cases/get-products.interface';
+import { DomainErrorBR } from '../../../domain/enums/domain.error.enum';
+import { DomainError } from '../../../domain/exceptions/domain.error';
+import { AppLoggerService } from '../../../infrastructure/logging/logger.service';
 
-/**
- * Caso de uso: Obtener productos con filtros y paginación
- */
 @Injectable()
 export class GetProductsService implements IGetProductsUseCase {
   constructor(
@@ -40,7 +39,7 @@ export class GetProductsService implements IGetProductsUseCase {
         'Failed to get products',
         error?.stack || JSON.stringify(error),
       );
-      throw error;
+      throw new DomainError(DomainErrorBR.INTERNAL_ERROR);
     }
   }
 }
