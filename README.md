@@ -109,3 +109,13 @@ O cualquier otro valor de `CronExpression` que se adapte a tus pruebas. Solo mod
 
 > Por defecto se dejó la frecuencia de una hora, como solicita el challenge.
 
+### 9. Documentación Swagger
+
+Puedes consultar la documentación interactiva de la API generada con Swagger en:
+
+```
+http://localhost:3001/api/docs
+```
+
+Allí podrás ver y probar todos los endpoints disponibles del proyecto.
+
