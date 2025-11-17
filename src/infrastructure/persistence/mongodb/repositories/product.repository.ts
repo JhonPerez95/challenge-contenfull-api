@@ -35,10 +35,10 @@ export class ProductRepository implements IProductRepository {
       const doc = new this.productModel(product);
       const saved = await doc.save();
       return this.toEntity(saved);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         'Error creating product',
-        error.stack || JSON.stringify(error),
+        error?.stack || JSON.stringify(error),
       );
       if (error?.code === 11000) {
         throw new DomainError(DomainErrorBR.PRODUCT_SKU_DUPLICATED);
@@ -51,8 +51,11 @@ export class ProductRepository implements IProductRepository {
     try {
       const document = await this.productModel.findById(id).exec();
       return document ? this.toEntity(document) : null;
-    } catch (error) {
-      this.logger.error('Error finding product by ID', error);
+    } catch (error: any) {
+      this.logger.error(
+        'Error finding product by ID',
+        error?.stack || JSON.stringify(error),
+      );
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);
     }
   }
@@ -116,11 +119,59 @@ export class ProductRepository implements IProductRepository {
   }
 
   // Búsqueda
-  findByFilters(
+  async findByFilters(
     filters: ProductFilters,
-  ): Promise<PaginatedResult<ProductFilters>> {
-    throw new Error('Method not implemented.');
+  ): Promise<PaginatedResult<Product>> {
+    this.logger.debug(
+      `Finding products with filters: ${JSON.stringify(filters)}`,
+    );
+
+    try {
+      const query: any = { deletedAt: null };
+
+      if (filters.name) {
+        query.name = { $regex: filters.name, $options: 'i' };
+      }
+
+      if (filters.category) {
+        query.category = filters.category;
+      }
+
+      if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+        query.price = {};
+        if (filters.minPrice !== undefined) {
+          query.price.$gte = filters.minPrice;
+        }
+        if (filters.maxPrice !== undefined) {
+          query.price.$lte = filters.maxPrice;
+        }
+      }
+
+      const skip = (filters.page - 1) * filters.limit;
+
+      const [documents, total] = await Promise.all([
+        this.productModel.find(query).skip(skip).limit(filters.limit).exec(),
+        this.productModel.countDocuments(query).exec(),
+      ]);
+
+      this.logger.debug(`Found ${documents.length} products (total: ${total})`);
+
+      return {
+        data: documents.map((doc) => this.toEntity(doc)),
+        total,
+        page: filters.page,
+        limit: filters.limit,
+        totalPages: Math.ceil(total / filters.limit),
+      };
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to find products by filters',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
   }
+
   findActiveProducts(): Promise<Product[]> {
     throw new Error('Method not implemented.');
   }

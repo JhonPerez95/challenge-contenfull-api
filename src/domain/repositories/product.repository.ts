@@ -31,9 +31,7 @@ export interface IProductRepository {
   softDelete(id: string): Promise<void>;
 
   // Búsqueda con filtros y paginación
-  findByFilters(
-    filters: ProductFilters,
-  ): Promise<PaginatedResult<ProductFilters>>;
+  findByFilters(filters: ProductFilters): Promise<PaginatedResult<Product>>;
   findActiveProducts(): Promise<Product[]>;
   findDeletedProducts(): Promise<Product[]>;
 
