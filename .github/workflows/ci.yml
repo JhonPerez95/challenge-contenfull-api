@@ -43,7 +43,7 @@ jobs:
             echo "No coverage report found. Failing the build."
             exit 1
           fi
-          COVERAGE=$(node -p "const c=require('./coverage/coverage-final.json');c.total?.lines?.pct || 0")
+          COVERAGE=$(node coverage-summary.js | grep -oP '[0-9]+\.[0-9]+(?=%)' | head -1)
           echo "Coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 30" | bc -l) )); then
             echo "Coverage is below 30%. Failing the build."
