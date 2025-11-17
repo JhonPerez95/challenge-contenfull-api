@@ -1,8 +1,6 @@
 import { AuthService } from '../../../../src/infrastructure/services/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { createMockLogger } from '../../../mocks/logger.mock';
-import { DomainError } from '../../../../src/domain/exceptions/domain.error';
-import { DomainErrorBR } from '../../../../src/domain/enums/domain.error.enum';
 
 describe('AuthService', () => {
   let service: AuthService;

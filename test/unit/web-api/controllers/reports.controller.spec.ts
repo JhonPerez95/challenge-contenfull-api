@@ -18,9 +18,8 @@ import {
   GET_ACTIVE_PERCENTAGE_USE_CASE,
   IGetActivePercentageUseCase,
 } from '../../../../src/domain/use-cases/get-active-percentage.interface';
-import { ActivePercentageResponseDto } from 'src/web-api/dtos/reports/active-percentage-response.dto';
-import { DateRangeResponseDto } from 'src/web-api/dtos/reports/date-range-response.dto';
-import { ProductsByCategoryResponseDto } from 'src/web-api/dtos/reports/products-by-category-response.dto';
+import { ActivePercentageResponseDto } from '../../../../src/web-api/dtos/reports/active-percentage-response.dto';
+import { ProductsByCategoryResponseDto } from '../../../../src/web-api/dtos/reports/products-by-category-response.dto';
 
 const createMockDeletedPercentageUseCase =
   (): IGetDeletedPercentageUseCase => ({

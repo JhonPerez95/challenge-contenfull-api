@@ -2,7 +2,6 @@ import { ContentfulService } from '../../../../src/infrastructure/services/conte
 import { createMockLogger } from '../../../mocks/logger.mock';
 import { mockContentfulProducts } from '../../../../src/data/dataFakeContentFul';
 import { DomainError } from '../../../../src/domain/exceptions/domain.error';
-import { DomainErrorBR } from '../../../../src/domain/enums/domain.error.enum';
 
 jest.mock('contentful', () => ({
   createClient: jest.fn(() => ({

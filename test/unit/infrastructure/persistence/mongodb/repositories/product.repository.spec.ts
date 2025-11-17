@@ -2,7 +2,6 @@ import { ProductRepository } from '../../../../../../src/infrastructure/persiste
 import { createMockLogger } from '../../../../../mocks/logger.mock';
 import { Product } from '../../../../../../src/domain/entities/product.entity';
 import { DomainError } from '../../../../../../src/domain/exceptions/domain.error';
-import { DomainErrorBR } from '../../../../../../src/domain/enums/domain.error.enum';
 
 const createMockProductModel = () => ({
   save: jest.fn(),
