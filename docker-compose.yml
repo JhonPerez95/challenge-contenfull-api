@@ -23,6 +23,30 @@ services:
       retries: 5
       start_period: 40s
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: contentful-api
+    restart: always
+    ports:
+      - '3001:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mongodb://admin:admin123@mongodb:27017/contentful-products?authSource=admin
+      CONTENTFUL_SPACE_ID: ${CONTENTFUL_SPACE_ID}
+      CONTENTFUL_ACCESS_TOKEN: ${CONTENTFUL_ACCESS_TOKEN}
+      CONTENTFUL_ENVIRONMENT: ${CONTENTFUL_ENVIRONMENT:-master}
+      CONTENTFUL_CONTENT_TYPE: ${CONTENTFUL_CONTENT_TYPE:-product}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - contentful-network
+
   # Mongo Express - UI
   mongo-express:
     image: mongo-express:latest
