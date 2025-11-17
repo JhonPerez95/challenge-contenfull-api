@@ -5,14 +5,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ProductDocument } from '../schemas/product.schema';
 import {
+  DateRangeFilter,
   IProductRepository,
   PaginatedResult,
   ProductFilters,
-} from 'src/domain/repositories/product.repository';
-import { Product } from 'src/domain/entities/product.entity';
-import { DomainError } from 'src/domain/exceptions/domain.error';
-import { DomainErrorBR } from 'src/domain/enums/domain.error.enum';
-import { AppLoggerService } from 'src/infrastructure/logging/logger.service';
+} from '../../../../domain/repositories/product.repository';
+import { Product } from '../../../../domain/entities/product.entity';
+import { DomainError } from '../../../../domain/exceptions/domain.error';
+import { DomainErrorBR } from '../../../../domain/enums/domain.error.enum';
+import { AppLoggerService } from '../../../../infrastructure/logging/logger.service';
 
 interface ProductDocumentFull extends ProductDocument {
   _id: Types.ObjectId;
@@ -71,7 +72,6 @@ export class ProductRepository implements IProductRepository {
         throw new DomainError(DomainErrorBR.PRODUCT_NOT_FOUND);
       }
 
-      this.logger.log(`Product updated successfully: ${id}`);
       return this.toEntity(updated);
     } catch (error: any) {
       if (error instanceof DomainError) {
@@ -103,8 +103,6 @@ export class ProductRepository implements IProductRepository {
       await this.productModel
         .findByIdAndUpdate(id, { deletedAt: new Date() })
         .exec();
-
-      this.logger.log(`Product soft deleted successfully: ${id}`);
     } catch (error: any) {
       if (error instanceof DomainError) {
         throw error;
@@ -147,10 +145,6 @@ export class ProductRepository implements IProductRepository {
   async findByFilters(
     filters: ProductFilters,
   ): Promise<PaginatedResult<Product>> {
-    this.logger.debug(
-      `Finding products with filters: ${JSON.stringify(filters)}`,
-    );
-
     try {
       const query: any = { deletedAt: null };
 
@@ -179,8 +173,6 @@ export class ProductRepository implements IProductRepository {
         this.productModel.countDocuments(query).exec(),
       ]);
 
-      this.logger.debug(`Found ${documents.length} products (total: ${total})`);
-
       return {
         data: documents.map((doc) => this.toEntity(doc)),
         total,
@@ -197,13 +189,6 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
-  findActiveProducts(): Promise<Product[]> {
-    throw new Error('Method not implemented.');
-  }
-  findDeletedProducts(): Promise<Product[]> {
-    throw new Error('Method not implemented.');
-  }
-
   // Reportes
   async countDeleted(): Promise<number> {
     try {
@@ -211,7 +196,6 @@ export class ProductRepository implements IProductRepository {
         .countDocuments({ deletedAt: { $ne: null } })
         .exec();
 
-      this.logger.debug(`Deleted products count: ${count}`);
       return count;
     } catch (error: any) {
       this.logger.error(
@@ -221,13 +205,13 @@ export class ProductRepository implements IProductRepository {
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);
     }
   }
+
   async countActive(): Promise<number> {
     try {
       const count = await this.productModel
         .countDocuments({ deletedAt: null })
         .exec();
 
-      this.logger.debug(`Active products count: ${count}`);
       return count;
     } catch (error: any) {
       this.logger.error(
@@ -237,6 +221,7 @@ export class ProductRepository implements IProductRepository {
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);
     }
   }
+
   async countWithPrice(): Promise<number> {
     try {
       const count = await this.productModel
@@ -246,7 +231,6 @@ export class ProductRepository implements IProductRepository {
         })
         .exec();
 
-      this.logger.debug(`Products with price count: ${count}`);
       return count;
     } catch (error: any) {
       this.logger.error(
@@ -256,6 +240,7 @@ export class ProductRepository implements IProductRepository {
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);
     }
   }
+
   async countWithoutPrice(): Promise<number> {
     try {
       const count = await this.productModel
@@ -265,7 +250,6 @@ export class ProductRepository implements IProductRepository {
         })
         .exec();
 
-      this.logger.debug(`Products without price count: ${count}`);
       return count;
     } catch (error: any) {
       this.logger.error(
@@ -279,11 +263,75 @@ export class ProductRepository implements IProductRepository {
   async getTotalCount(): Promise<number> {
     try {
       const count = await this.productModel.countDocuments().exec();
-      this.logger.debug(`Total products count: ${count}`);
       return count;
     } catch (error: any) {
       this.logger.error(
         'Failed to count total products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countByDateRange(dateRange: DateRangeFilter): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate,
+          },
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products by date range',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countActiveByDateRange(dateRange: DateRangeFilter): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate,
+          },
+          deletedAt: null,
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count active products by date range',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countDeletedByDateRange(dateRange: DateRangeFilter): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate,
+          },
+          deletedAt: { $ne: null },
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count deleted products by date range',
         error?.stack || JSON.stringify(error),
       );
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);

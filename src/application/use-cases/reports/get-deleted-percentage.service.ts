@@ -30,10 +30,6 @@ export class GetDeletedPercentageService
     const deletedPercentage =
       totalProducts > 0 ? (deletedProducts / totalProducts) * 100 : 0;
 
-    this.logger.log(
-      `Deleted percentage calculated: ${deletedPercentage.toFixed(2)}%`,
-    );
-
     return {
       totalProducts,
       deletedProducts,

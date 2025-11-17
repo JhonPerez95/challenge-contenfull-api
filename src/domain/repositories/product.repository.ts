@@ -38,8 +38,6 @@ export interface IProductRepository {
 
   // Búsqueda con filtros y paginación
   findByFilters(filters: ProductFilters): Promise<PaginatedResult<Product>>;
-  findActiveProducts(): Promise<Product[]>;
-  findDeletedProducts(): Promise<Product[]>;
 
   // Reportes TODO: Por confirmar tipado
   countDeleted(): Promise<number>;
@@ -47,6 +45,9 @@ export interface IProductRepository {
   countWithPrice(): Promise<number>;
   countWithoutPrice(): Promise<number>;
   getTotalCount(): Promise<number>;
+  countByDateRange(dateRange: DateRangeFilter): Promise<number>;
+  countActiveByDateRange(dateRange: DateRangeFilter): Promise<number>;
+  countDeletedByDateRange(dateRange: DateRangeFilter): Promise<number>;
 }
 
 export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');

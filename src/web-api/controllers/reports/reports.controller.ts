@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +15,10 @@ import {
   GET_ACTIVE_PERCENTAGE_USE_CASE,
   IGetActivePercentageUseCase,
 } from '../../../domain/use-cases/get-active-percentage.interface';
+import {
+  GET_PRODUCTS_BY_DATE_RANGE_USE_CASE,
+  IGetProductsByDateRangeUseCase,
+} from '../../../domain/use-cases/get-products-by-date-range.interface';
 
 import { JwtAuthGuard } from '../../../infrastructure/auth/guards/jwt-auth.guard';
 
@@ -24,7 +28,8 @@ import {
   UnauthorizedErrorDto,
 } from '../../dtos/common/errors.dto';
 import { ActivePercentageResponseDto } from '../../dtos/reports/active-percentage-response.dto';
-
+import { DateRangeResponseDto } from '../../dtos/reports/date-range-response.dto';
+import { DateRangeQueryDto } from '../../dtos/reports/date-range-query.dto';
 @ApiTags('Reports')
 @ApiBearerAuth()
 @ApiResponse({
@@ -45,6 +50,8 @@ export class ReportsController {
     private readonly getDeletedPercentageUseCase: IGetDeletedPercentageUseCase,
     @Inject(GET_ACTIVE_PERCENTAGE_USE_CASE)
     private readonly getActivePercentageUseCase: IGetActivePercentageUseCase,
+    @Inject(GET_PRODUCTS_BY_DATE_RANGE_USE_CASE)
+    private readonly getProductsByDateRangeUseCase: IGetProductsByDateRangeUseCase,
   ) {}
 
   @Get('deleted-percentage')
@@ -70,5 +77,24 @@ export class ReportsController {
   async getActivePercentage(): Promise<ActivePercentageResponseDto> {
     const report = await this.getActivePercentageUseCase.execute();
     return ActivePercentageResponseDto.fromDomain(report);
+  }
+
+  @Get('date-range')
+  @ApiOperation({ summary: 'Get products report by date range' })
+  @ApiResponse({
+    status: 200,
+    description: 'Products report by date range calculated successfully',
+    type: DateRangeResponseDto,
+  })
+  async getProductsByDateRange(
+    @Query() query: DateRangeQueryDto,
+  ): Promise<DateRangeResponseDto> {
+    const dateRange = {
+      startDate: new Date(query.startDate),
+      endDate: new Date(query.endDate),
+    };
+
+    const report = await this.getProductsByDateRangeUseCase.execute(dateRange);
+    return DateRangeResponseDto.fromDomain(report);
   }
 }

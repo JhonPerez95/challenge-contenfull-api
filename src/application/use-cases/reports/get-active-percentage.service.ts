@@ -32,10 +32,6 @@ export class GetActivePercentageService implements IGetActivePercentageUseCase {
     const withoutPricePercentage =
       totalActiveProducts > 0 ? (withoutPrice / totalActiveProducts) * 100 : 0;
 
-    this.logger.log(
-      `Active percentage calculated - With price: ${withPricePercentage.toFixed(2)}%, Without price: ${withoutPricePercentage.toFixed(2)}%`,
-    );
-
     return {
       totalActiveProducts,
       withPrice,
