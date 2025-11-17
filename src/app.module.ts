@@ -6,10 +6,15 @@ import { MongodbModule } from './infrastructure/modules/mongodb.module';
 import { envs } from './infrastructure/config/env';
 import { LoggingModule } from './infrastructure/modules/logging.module';
 import { ProductModule } from './web-api/modules/product/product.module';
-import { ContentfulService } from './infrastructure/external-services/contentful/contentful.service';
+import { ContentfulService } from './infrastructure/services/contentful.service';
 import { ContentfulModule } from './infrastructure/modules/contentful.module';
 import { ProductSyncService } from './application/services/product-sync.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './infrastructure/modules/auth.module';
+import { AuthService } from './infrastructure/services/auth.service';
+import { AuthController } from './web-api/controllers/auth/auth.controller';
+import { ReportsModule } from './web-api/modules/reports/reports.module';
+import { ReportsController } from './web-api/controllers/reports/reports.controller';
 
 @Module({
   imports: [
@@ -22,8 +27,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     LoggingModule,
     ProductModule,
     ContentfulModule,
+    AuthModule,
+    ReportsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AuthController, ReportsController],
   providers: [AppService, ContentfulService, ProductSyncService],
 })
 export class AppModule {}

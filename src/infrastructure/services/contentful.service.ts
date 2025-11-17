@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import * as contentful from 'contentful';
 
-import { AppLoggerService } from '../../logging/logger.service';
+import { AppLoggerService } from '../logging/logger.service';
 
-import { IContentfulService } from '../../../domain/services/contentful.service.interface';
-import { ContentfulProduct } from '../../../domain/interfaces/contentful-product.interface';
-import { DomainErrorBR } from '../../../domain/enums/domain.error.enum';
-import { DomainError } from '../../../domain/exceptions/domain.error';
+import { IContentfulService } from '../../domain/services/contentful.service.interface';
+import { ContentfulProduct } from '../../domain/interfaces/contentful-product.interface';
+import { DomainErrorBR } from '../../domain/enums/domain.error.enum';
+import { DomainError } from '../../domain/exceptions/domain.error';
 
-import { envs } from '../../../infrastructure/config/env';
-import { mockContentfulProducts } from '../../../data/dataFakeContentFul';
+import { envs } from '../config/env';
+import { mockContentfulProducts } from '../../data/dataFakeContentFul';
 
 @Injectable()
 export class ContentfulService implements IContentfulService {

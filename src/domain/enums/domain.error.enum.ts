@@ -53,6 +53,12 @@ export const DomainErrorBR = {
     statusCode: 400,
   },
 
+  INVALID_TOKEN: {
+    code: '401_INVALID_TOKEN',
+    message: 'The provided token is invalid',
+    statusCode: 401,
+  },
+
   MISSING_REQUIRED_FIELDS: {
     code: '400_MISSING_REQUIRED_FIELDS',
     message: 'Required fields are missing',

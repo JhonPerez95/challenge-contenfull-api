@@ -9,7 +9,7 @@ interface EnvConfig {
   CONTENTFUL_CONTENT_TYPE: string;
   DATABASE_URL: string;
   JWT_SECRET: string;
-  JWT_EXPIRATION: string;
+  JWT_EXPIRATION: number;
   NODE_ENV: string;
 }
 
@@ -22,7 +22,7 @@ const envSchema = joi
     CONTENTFUL_CONTENT_TYPE: joi.string().required(),
     DATABASE_URL: joi.string().required(),
     JWT_SECRET: joi.string().required(),
-    JWT_EXPIRATION: joi.string().required(),
+    JWT_EXPIRATION: joi.number().default(3600),
     NODE_ENV: joi.string().required(),
   })
   .unknown(true);

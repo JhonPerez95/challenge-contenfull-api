@@ -12,6 +12,11 @@ import {
 
 import { GetProductsQueryDto } from '../../dtos/product/get-products-query.dto';
 import { PaginatedProductsResponseDto } from '../../dtos/product/product-response.dto';
+import {
+  BadRequestErrorDto,
+  InternalServerErrorDto,
+  NotFoundErrorDto,
+} from '../../dtos/common/errors.dto';
 
 import { ProductFilters } from '../../../domain/repositories/product.repository';
 import {
@@ -22,7 +27,24 @@ import {
   DELETE_PRODUCT_USE_CASE,
   IDeleteProductUseCase,
 } from '../../../domain/use-cases/delete-product.interface';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Products')
+@ApiResponse({
+  status: 500,
+  description: 'Internal server error',
+  type: InternalServerErrorDto,
+})
+@ApiResponse({
+  status: 404,
+  description: 'Product not found',
+  type: NotFoundErrorDto,
+})
+@ApiResponse({
+  status: 400,
+  description: 'Product already deleted',
+  type: BadRequestErrorDto,
+})
 @Controller('products')
 export class ProductController {
   constructor(
@@ -57,6 +79,9 @@ export class ProductController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Soft delete a product' })
+  @ApiResponse({ status: 204, description: 'Product deleted successfully' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteProduct(@Param('id') id: string): Promise<void> {
     await this.deleteProductUseCase.execute(id);
