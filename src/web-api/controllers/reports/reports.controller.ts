@@ -11,7 +11,10 @@ import {
   IGetDeletedPercentageUseCase,
   GET_DELETED_PERCENTAGE_USE_CASE,
 } from '../../../domain/use-cases/get-deleted-percentage.interface';
-import { DomainErrorBR } from '../../../domain/enums/domain.error.enum';
+import {
+  GET_ACTIVE_PERCENTAGE_USE_CASE,
+  IGetActivePercentageUseCase,
+} from '../../../domain/use-cases/get-active-percentage.interface';
 
 import { JwtAuthGuard } from '../../../infrastructure/auth/guards/jwt-auth.guard';
 
@@ -20,6 +23,7 @@ import {
   InternalServerErrorDto,
   UnauthorizedErrorDto,
 } from '../../dtos/common/errors.dto';
+import { ActivePercentageResponseDto } from '../../dtos/reports/active-percentage-response.dto';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -39,6 +43,8 @@ export class ReportsController {
   constructor(
     @Inject(GET_DELETED_PERCENTAGE_USE_CASE)
     private readonly getDeletedPercentageUseCase: IGetDeletedPercentageUseCase,
+    @Inject(GET_ACTIVE_PERCENTAGE_USE_CASE)
+    private readonly getActivePercentageUseCase: IGetActivePercentageUseCase,
   ) {}
 
   @Get('deleted-percentage')
@@ -50,5 +56,19 @@ export class ReportsController {
   async getDeletedPercentage(): Promise<DeletedPercentageResponseDto> {
     const report = await this.getDeletedPercentageUseCase.execute();
     return DeletedPercentageResponseDto.fromDomain(report);
+  }
+
+  @Get('active-percentage')
+  @ApiOperation({
+    summary: 'Get active products percentage report (with/without price)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Active products percentage calculated successfully',
+    type: ActivePercentageResponseDto,
+  })
+  async getActivePercentage(): Promise<ActivePercentageResponseDto> {
+    const report = await this.getActivePercentageUseCase.execute();
+    return ActivePercentageResponseDto.fromDomain(report);
   }
 }

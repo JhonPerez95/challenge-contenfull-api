@@ -221,14 +221,59 @@ export class ProductRepository implements IProductRepository {
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);
     }
   }
-  countActive(): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countActive(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({ deletedAt: null })
+        .exec();
+
+      this.logger.debug(`Active products count: ${count}`);
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count active products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
   }
-  countWithPrice(): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countWithPrice(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          deletedAt: null,
+          price: { $gt: 0 },
+        })
+        .exec();
+
+      this.logger.debug(`Products with price count: ${count}`);
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products with price',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
   }
-  countWithoutPrice(): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countWithoutPrice(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          deletedAt: null,
+          $or: [{ price: 0 }, { price: null }, { price: { $exists: false } }],
+        })
+        .exec();
+
+      this.logger.debug(`Products without price count: ${count}`);
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products without price',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
   }
 
   async getTotalCount(): Promise<number> {
