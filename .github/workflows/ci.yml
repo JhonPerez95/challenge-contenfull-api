@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - github-actions-ci
+  pull_request:
+    branches:
+      - main
+      - development
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ACCESS_TOKEN: ${{ vars.CONTENTFUL_ACCESS_TOKEN }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      CONTENTFUL_CONTENT_TYPE: ${{ vars.CONTENTFUL_CONTENT_TYPE }}
+      DATABASE_URL: ${{ vars.DATABASE_URL }}
+      PORT: ${{ vars.PORT }}
+      NODE_ENV: ${{ vars.NODE_ENV }}
+      JWT_SECRET: ${{ vars.JWT_SECRET }}
+      JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Run coverage
+        run: npm run test:cov
+      - name: Mostrar porcentaje de cobertura
+        run: node coverage-summary.js
+      - name: Check coverage threshold
+        run: |
+          if [ ! -f ./coverage/coverage-final.json ]; then
+            echo "No coverage report found. Failing the build."
+            exit 1
+          fi
+          COVERAGE=$(node coverage-summary.js | grep -oP '[0-9]+\.[0-9]+(?=%)' | head -1)
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 30" | bc -l) )); then
+            echo "Coverage is below 30%. Failing the build."
+            exit 1
+          fi
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
