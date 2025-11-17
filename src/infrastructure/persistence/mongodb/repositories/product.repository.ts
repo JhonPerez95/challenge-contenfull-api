@@ -1,0 +1,402 @@
+// TODO: Pendiente: por confirmar tipados
+
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { ProductDocument } from '../schemas/product.schema';
+import {
+  CategoryCount,
+  DateRangeFilter,
+  IProductRepository,
+  PaginatedResult,
+  ProductFilters,
+} from '../../../../domain/repositories/product.repository';
+import { Product } from '../../../../domain/entities/product.entity';
+import { DomainError } from '../../../../domain/exceptions/domain.error';
+import { DomainErrorBR } from '../../../../domain/enums/domain.error.enum';
+import { AppLoggerService } from '../../../../infrastructure/logging/logger.service';
+
+interface ProductDocumentFull extends ProductDocument {
+  _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+@Injectable()
+export class ProductRepository implements IProductRepository {
+  constructor(
+    @InjectModel(ProductDocument.name)
+    private readonly productModel: Model<ProductDocument>,
+    private readonly logger: AppLoggerService,
+  ) {
+    this.logger.setContext(ProductRepository.name);
+  }
+  // CURD
+  async create(product: Product): Promise<Product> {
+    try {
+      const doc = new this.productModel(product);
+      const saved = await doc.save();
+      return this.toEntity(saved);
+    } catch (error: any) {
+      this.logger.error(
+        'Error creating product',
+        error?.stack || JSON.stringify(error),
+      );
+      if (error?.code === 11000) {
+        throw new DomainError(DomainErrorBR.PRODUCT_SKU_DUPLICATED);
+      }
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async findById(id: string): Promise<Product | null> {
+    try {
+      const document = await this.productModel.findById(id).exec();
+      return document ? this.toEntity(document) : null;
+    } catch (error: any) {
+      this.logger.error(
+        'Error finding product by ID',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async update(id: string, product: Partial<Product>): Promise<Product> {
+    try {
+      const updated = await this.productModel
+        .findByIdAndUpdate(id, product, { new: true })
+        .exec();
+
+      if (!updated) {
+        this.logger.warn(`Product not found for update: ${id}`);
+        throw new DomainError(DomainErrorBR.PRODUCT_NOT_FOUND);
+      }
+
+      return this.toEntity(updated);
+    } catch (error: any) {
+      if (error instanceof DomainError) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Failed to update product: ${id}`,
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async softDelete(id: string): Promise<void> {
+    try {
+      const product = await this.productModel.findById(id).exec();
+
+      if (!product) {
+        this.logger.warn(`Product not found for deletion: ${id}`);
+        throw new DomainError(DomainErrorBR.PRODUCT_NOT_FOUND);
+      }
+
+      if (product.deletedAt) {
+        this.logger.warn(`Product already deleted: ${id}`);
+        throw new DomainError(DomainErrorBR.PRODUCT_ALREADY_DELETED);
+      }
+
+      await this.productModel
+        .findByIdAndUpdate(id, { deletedAt: new Date() })
+        .exec();
+    } catch (error: any) {
+      if (error instanceof DomainError) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Failed to soft delete product: ${id}`,
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async upsert(product: Product): Promise<Product> {
+    try {
+      const updated = await this.productModel
+        .findOneAndUpdate({ sku: product.sku }, product, {
+          new: true,
+          upsert: true,
+          runValidators: true,
+        })
+        .exec();
+
+      return this.toEntity(updated);
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to upsert product: ${product.id}`,
+        error?.stack || JSON.stringify(error),
+      );
+
+      if (error?.code === 11000) {
+        throw new DomainError(DomainErrorBR.PRODUCT_SKU_DUPLICATED);
+      }
+
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  // Búsqueda
+  async findByFilters(
+    filters: ProductFilters,
+  ): Promise<PaginatedResult<Product>> {
+    try {
+      const query: any = { deletedAt: null };
+
+      if (filters.name) {
+        query.name = { $regex: filters.name, $options: 'i' };
+      }
+
+      if (filters.category) {
+        query.category = filters.category;
+      }
+
+      if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+        query.price = {};
+        if (filters.minPrice !== undefined) {
+          query.price.$gte = filters.minPrice;
+        }
+        if (filters.maxPrice !== undefined) {
+          query.price.$lte = filters.maxPrice;
+        }
+      }
+
+      const skip = (filters.page - 1) * filters.limit;
+
+      const [documents, total] = await Promise.all([
+        this.productModel.find(query).skip(skip).limit(filters.limit).exec(),
+        this.productModel.countDocuments(query).exec(),
+      ]);
+
+      return {
+        data: documents.map((doc) => this.toEntity(doc)),
+        total,
+        page: filters.page,
+        limit: filters.limit,
+        totalPages: Math.ceil(total / filters.limit),
+      };
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to find products by filters',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  // Reportes
+  async countDeleted(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({ deletedAt: { $ne: null } })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count deleted products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countActive(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({ deletedAt: null })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count active products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countWithPrice(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          deletedAt: null,
+          price: { $gt: 0 },
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products with price',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countWithoutPrice(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          deletedAt: null,
+          $or: [{ price: 0 }, { price: null }, { price: { $exists: false } }],
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products without price',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async getTotalCount(): Promise<number> {
+    try {
+      const count = await this.productModel.countDocuments().exec();
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count total products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countByDateRange(dateRange: DateRangeFilter): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate,
+          },
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products by date range',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countActiveByDateRange(dateRange: DateRangeFilter): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate,
+          },
+          deletedAt: null,
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count active products by date range',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  async countDeletedByDateRange(dateRange: DateRangeFilter): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate,
+          },
+          deletedAt: { $ne: null },
+        })
+        .exec();
+
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count deleted products by date range',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  // Personalizado
+
+  async countByCategory(): Promise<CategoryCount[]> {
+    try {
+      const result = await this.productModel
+        .aggregate([
+          {
+            $match: { deletedAt: null },
+          },
+          {
+            $group: {
+              _id: '$category',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              category: '$_id',
+              count: 1,
+            },
+          },
+          {
+            $sort: { count: -1 },
+          },
+        ])
+        .exec();
+
+      return result as CategoryCount[];
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products by category',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  /**
+   * Convierte un ProductDocument de MongoDB a una entidad Product del dominio
+   */
+  private toEntity(doc: ProductDocument): Product {
+    const docWithTimestamps = doc as ProductDocumentFull;
+
+    return new Product({
+      id: docWithTimestamps._id.toString(),
+      sku: docWithTimestamps.sku,
+      name: docWithTimestamps.name,
+      description: docWithTimestamps.description,
+      price: docWithTimestamps.price,
+      currency: docWithTimestamps.currency,
+      category: docWithTimestamps.category,
+      tags: docWithTimestamps.tags,
+      images: docWithTimestamps.images,
+      inStock: docWithTimestamps.inStock,
+      createdAt: docWithTimestamps.createdAt,
+      updatedAt: docWithTimestamps.updatedAt,
+      deletedAt: docWithTimestamps.deletedAt,
+    });
+  }
+}
