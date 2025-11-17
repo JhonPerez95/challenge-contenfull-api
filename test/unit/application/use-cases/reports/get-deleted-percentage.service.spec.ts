@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetDeletedPercentageService } from 'src/application/use-cases/reports/get-deleted-percentage.service';
-import { PRODUCT_REPOSITORY } from 'src/domain/repositories/product.repository';
-import { AppLoggerService } from 'src/infrastructure/logging/logger.service';
+import { GetDeletedPercentageService } from '../../../../../src/application/use-cases/reports/get-deleted-percentage.service';
+import { PRODUCT_REPOSITORY } from '../../../../../src/domain/repositories/product.repository';
+import { AppLoggerService } from '../../../../../src/infrastructure/logging/logger.service';
 
 import {
   createMockLogger,

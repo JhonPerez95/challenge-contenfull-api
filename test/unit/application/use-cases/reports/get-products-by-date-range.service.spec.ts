@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetProductsByDateRangeService } from 'src/application/use-cases/reports/get-products-by-date-range.service';
-import { PRODUCT_REPOSITORY } from 'src/domain/repositories/product.repository';
-import { AppLoggerService } from 'src/infrastructure/logging/logger.service';
+import { GetProductsByDateRangeService } from '../../../../../src/application/use-cases/reports/get-products-by-date-range.service';
+import { PRODUCT_REPOSITORY } from '../../../../../src/domain/repositories/product.repository';
+import { AppLoggerService } from '../../../../../src/infrastructure/logging/logger.service';
 
 import {
   createMockLogger,
