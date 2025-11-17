@@ -37,7 +37,11 @@ jobs:
         run: npm run test:cov
       - name: Check coverage threshold
         run: |
-          COVERAGE=$(node -p "require('./coverage/coverage-final.json').total.lines.pct")
+          if [ ! -f ./coverage/coverage-final.json ]; then
+            echo "No coverage report found. Failing the build."
+            exit 1
+          fi
+          COVERAGE=$(node -p "const c=require('./coverage/coverage-final.json');c.total?.lines?.pct || 0")
           echo "Coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 30" | bc -l) )); then
             echo "Coverage is below 30%. Failing the build."
