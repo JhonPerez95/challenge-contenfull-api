@@ -218,6 +218,9 @@ export class ProductRepository implements IProductRepository {
     throw new Error('Method not implemented.');
   }
 
+  getTotalCount(): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
   /**
    * Convierte un ProductDocument de MongoDB a una entidad Product del dominio
    */

@@ -23,6 +23,11 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
+export interface DateRangeFilter {
+  startDate: Date;
+  endDate: Date;
+}
+
 export interface IProductRepository {
   // CRUD sencillo
   create(product: Product): Promise<Product>;
@@ -41,6 +46,7 @@ export interface IProductRepository {
   countActive(): Promise<number>;
   countWithPrice(): Promise<number>;
   countWithoutPrice(): Promise<number>;
+  getTotalCount(): Promise<number>;
 }
 
 export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');
