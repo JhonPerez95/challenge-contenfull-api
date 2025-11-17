@@ -25,11 +25,10 @@ export interface PaginatedResult<T> {
 
 export interface IProductRepository {
   // CRUD sencillo
-
   create(product: Product): Promise<Product>;
   findById(id: string): Promise<Product | null>;
   update(id: string, product: Partial<Product>): Promise<Product>;
-  delete(id: string): Promise<void>;
+  softDelete(id: string): Promise<void>;
 
   // Búsqueda con filtros y paginación
   findByFilters(
