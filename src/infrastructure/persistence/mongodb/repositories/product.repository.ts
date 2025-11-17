@@ -118,6 +118,31 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
+  async upsert(product: Product): Promise<Product> {
+    try {
+      const updated = await this.productModel
+        .findOneAndUpdate({ _id: product.id }, product, {
+          new: true,
+          upsert: true,
+          runValidators: true,
+        })
+        .exec();
+
+      return this.toEntity(updated);
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to upsert product: ${product.id}`,
+        error?.stack || JSON.stringify(error),
+      );
+
+      if (error?.code === 11000) {
+        throw new DomainError(DomainErrorBR.PRODUCT_SKU_DUPLICATED);
+      }
+
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
   // Búsqueda
   async findByFilters(
     filters: ProductFilters,

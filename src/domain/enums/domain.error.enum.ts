@@ -65,6 +65,11 @@ export const DomainErrorBR = {
     message: 'Failed to fetch data from Contentful',
     statusCode: 500,
   },
+  PRODUCT_SYNC_ERROR: {
+    code: '500_PRODUCT_SYNC_ERROR',
+    message: 'Failed to synchronize products',
+    statusCode: 500,
+  },
 } as const;
 
 /**

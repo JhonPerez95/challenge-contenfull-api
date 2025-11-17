@@ -8,6 +8,7 @@ import { LoggingModule } from './infrastructure/modules/logging.module';
 import { ProductModule } from './web-api/modules/product/product.module';
 import { ContentfulService } from './infrastructure/external-services/contentful/contentful.service';
 import { ContentfulModule } from './infrastructure/modules/contentful.module';
+import { ProductSyncService } from './application/services/product-sync.service';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { ContentfulModule } from './infrastructure/modules/contentful.module';
     ContentfulModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ContentfulService],
+  providers: [AppService, ContentfulService, ProductSyncService],
 })
 export class AppModule {}
