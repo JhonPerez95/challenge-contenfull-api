@@ -1,19 +1,27 @@
 import {
   Controller,
   Post,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
   UseGuards,
-  Get,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import {
   IAuthService,
   AUTH_SERVICE,
 } from '../../../domain/services/auth.service.interface';
-import { JwtAuthGuard } from 'src/infrastructure/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../../infrastructure/auth/guards/jwt-auth.guard';
+import { LoginResponseDto } from '../../dtos/auth/login-response.dto';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -23,13 +31,22 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(): Promise<{ access_token: string }> {
+  @ApiOperation({ summary: 'Generate JWT access token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Token generated successfully',
+    type: LoginResponseDto,
+  })
+  async login(): Promise<LoginResponseDto> {
     return this.authService.login();
   }
 
-  // RUTA PROTEGIDA DE EJEMPLO
   @Get('profile')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Test protected route' })
+  @ApiResponse({ status: 200, description: 'Access granted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   getProfile(): { message: string } {
     return { message: 'This is a protected route!' };
   }
