@@ -4,11 +4,12 @@ on:
   push:
     branches:
       - main
+      - development
       - github-actions-ci
   pull_request:
     branches:
       - main
-
+      - development
 jobs:
   build:
     runs-on: ubuntu-latest
