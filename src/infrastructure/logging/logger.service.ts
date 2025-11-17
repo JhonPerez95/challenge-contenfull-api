@@ -5,11 +5,15 @@ import { Environments } from 'src/domain/enums/envieroments.enum';
 @Injectable()
 export class AppLoggerService implements LoggerService {
   private readonly logLevels: LogLevel[];
-  private readonly context: string;
+  private context: string = 'Application';
 
-  constructor(context?: string) {
-    this.context = context || 'Application';
+  constructor() {
     this.logLevels = this.getLogLevels();
+  }
+
+  setContext(context: string): this {
+    this.context = context;
+    return this;
   }
 
   private getLogLevels(): LogLevel[] {
