@@ -205,8 +205,21 @@ export class ProductRepository implements IProductRepository {
   }
 
   // Reportes
-  countDeleted(): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countDeleted(): Promise<number> {
+    try {
+      const count = await this.productModel
+        .countDocuments({ deletedAt: { $ne: null } })
+        .exec();
+
+      this.logger.debug(`Deleted products count: ${count}`);
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count deleted products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
   }
   countActive(): Promise<number> {
     throw new Error('Method not implemented.');
@@ -218,9 +231,20 @@ export class ProductRepository implements IProductRepository {
     throw new Error('Method not implemented.');
   }
 
-  getTotalCount(): Promise<number> {
-    throw new Error('Method not implemented.');
+  async getTotalCount(): Promise<number> {
+    try {
+      const count = await this.productModel.countDocuments().exec();
+      this.logger.debug(`Total products count: ${count}`);
+      return count;
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count total products',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
   }
+
   /**
    * Convierte un ProductDocument de MongoDB a una entidad Product del dominio
    */

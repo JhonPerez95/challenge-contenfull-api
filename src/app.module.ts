@@ -13,6 +13,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './infrastructure/modules/auth.module';
 import { AuthService } from './infrastructure/services/auth.service';
 import { AuthController } from './web-api/controllers/auth/auth.controller';
+import { ReportsModule } from './web-api/modules/reports/reports.module';
+import { ReportsController } from './web-api/controllers/reports/reports.controller';
 
 @Module({
   imports: [
@@ -26,8 +28,9 @@ import { AuthController } from './web-api/controllers/auth/auth.controller';
     ProductModule,
     ContentfulModule,
     AuthModule,
+    ReportsModule,
   ],
-  controllers: [AppController, AuthController],
+  controllers: [AppController, AuthController, ReportsController],
   providers: [AppService, ContentfulService, ProductSyncService],
 })
 export class AppModule {}
