@@ -10,6 +10,9 @@ import { ContentfulService } from './infrastructure/external-services/contentful
 import { ContentfulModule } from './infrastructure/modules/contentful.module';
 import { ProductSyncService } from './application/services/product-sync.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './infrastructure/modules/auth.module';
+import { AuthService } from './infrastructure/services/auth.service';
+import { AuthController } from './web-api/controllers/auth/auth.controller';
 
 @Module({
   imports: [
@@ -22,8 +25,9 @@ import { ScheduleModule } from '@nestjs/schedule';
     LoggingModule,
     ProductModule,
     ContentfulModule,
+    AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, ContentfulService, ProductSyncService],
+  controllers: [AppController, AuthController],
+  providers: [AppService, ContentfulService, ProductSyncService, AuthService],
 })
 export class AppModule {}

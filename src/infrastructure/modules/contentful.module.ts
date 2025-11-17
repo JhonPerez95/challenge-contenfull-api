@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { LoggingModule } from './logging.module';
 import { CONTENTFUL_SERVICE } from '../../domain/services/contentful.service.interface';
-import { ContentfulService } from '../external-services/contentful/contentful.service';
+import { ContentfulService } from '../services/contentful.service';
 
 @Module({
   imports: [ConfigModule, LoggingModule],
