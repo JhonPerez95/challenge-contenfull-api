@@ -27,6 +27,10 @@ export interface DateRangeFilter {
   startDate: Date;
   endDate: Date;
 }
+export interface CategoryCount {
+  category: string;
+  count: number;
+}
 
 export interface IProductRepository {
   // CRUD sencillo
@@ -48,6 +52,7 @@ export interface IProductRepository {
   countByDateRange(dateRange: DateRangeFilter): Promise<number>;
   countActiveByDateRange(dateRange: DateRangeFilter): Promise<number>;
   countDeletedByDateRange(dateRange: DateRangeFilter): Promise<number>;
+  countByCategory(): Promise<CategoryCount[]>;
 }
 
 export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');

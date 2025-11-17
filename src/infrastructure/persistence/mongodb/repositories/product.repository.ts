@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ProductDocument } from '../schemas/product.schema';
 import {
+  CategoryCount,
   DateRangeFilter,
   IProductRepository,
   PaginatedResult,
@@ -332,6 +333,44 @@ export class ProductRepository implements IProductRepository {
     } catch (error: any) {
       this.logger.error(
         'Failed to count deleted products by date range',
+        error?.stack || JSON.stringify(error),
+      );
+      throw new DomainError(DomainErrorBR.DATABASE_ERROR);
+    }
+  }
+
+  // Personalizado
+
+  async countByCategory(): Promise<CategoryCount[]> {
+    try {
+      const result = await this.productModel
+        .aggregate([
+          {
+            $match: { deletedAt: null },
+          },
+          {
+            $group: {
+              _id: '$category',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              category: '$_id',
+              count: 1,
+            },
+          },
+          {
+            $sort: { count: -1 },
+          },
+        ])
+        .exec();
+
+      return result as CategoryCount[];
+    } catch (error: any) {
+      this.logger.error(
+        'Failed to count products by category',
         error?.stack || JSON.stringify(error),
       );
       throw new DomainError(DomainErrorBR.DATABASE_ERROR);

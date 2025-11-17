@@ -19,6 +19,10 @@ import {
   GET_PRODUCTS_BY_DATE_RANGE_USE_CASE,
   IGetProductsByDateRangeUseCase,
 } from '../../../domain/use-cases/get-products-by-date-range.interface';
+import {
+  GET_PRODUCTS_BY_CATEGORY_USE_CASE,
+  IGetProductsByCategoryUseCase,
+} from '../../../domain/use-cases/get-products-by-category.interface';
 
 import { JwtAuthGuard } from '../../../infrastructure/auth/guards/jwt-auth.guard';
 
@@ -30,6 +34,7 @@ import {
 import { ActivePercentageResponseDto } from '../../dtos/reports/active-percentage-response.dto';
 import { DateRangeResponseDto } from '../../dtos/reports/date-range-response.dto';
 import { DateRangeQueryDto } from '../../dtos/reports/date-range-query.dto';
+import { ProductsByCategoryResponseDto } from '../../dtos/reports/products-by-category-response.dto';
 @ApiTags('Reports')
 @ApiBearerAuth()
 @ApiResponse({
@@ -52,6 +57,8 @@ export class ReportsController {
     private readonly getActivePercentageUseCase: IGetActivePercentageUseCase,
     @Inject(GET_PRODUCTS_BY_DATE_RANGE_USE_CASE)
     private readonly getProductsByDateRangeUseCase: IGetProductsByDateRangeUseCase,
+    @Inject(GET_PRODUCTS_BY_CATEGORY_USE_CASE)
+    private readonly getProductsByCategoryUseCase: IGetProductsByCategoryUseCase,
   ) {}
 
   @Get('deleted-percentage')
@@ -96,5 +103,17 @@ export class ReportsController {
 
     const report = await this.getProductsByDateRangeUseCase.execute(dateRange);
     return DateRangeResponseDto.fromDomain(report);
+  }
+
+  @Get('by-category')
+  @ApiOperation({ summary: 'Get products grouped by category (custom report)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Products by category report calculated successfully',
+    type: ProductsByCategoryResponseDto,
+  })
+  async getProductsByCategory(): Promise<ProductsByCategoryResponseDto> {
+    const report = await this.getProductsByCategoryUseCase.execute();
+    return ProductsByCategoryResponseDto.fromDomain(report);
   }
 }
