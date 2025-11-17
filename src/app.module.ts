@@ -9,6 +9,7 @@ import { ProductModule } from './web-api/modules/product/product.module';
 import { ContentfulService } from './infrastructure/external-services/contentful/contentful.service';
 import { ContentfulModule } from './infrastructure/modules/contentful.module';
 import { ProductSyncService } from './application/services/product-sync.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProductSyncService } from './application/services/product-sync.service'
       isGlobal: true,
       load: [() => envs],
     }),
+    ScheduleModule.forRoot(),
     MongodbModule,
     LoggingModule,
     ProductModule,

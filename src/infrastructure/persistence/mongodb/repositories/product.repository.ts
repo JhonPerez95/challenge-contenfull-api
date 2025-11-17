@@ -121,7 +121,7 @@ export class ProductRepository implements IProductRepository {
   async upsert(product: Product): Promise<Product> {
     try {
       const updated = await this.productModel
-        .findOneAndUpdate({ _id: product.id }, product, {
+        .findOneAndUpdate({ sku: product.sku }, product, {
           new: true,
           upsert: true,
           runValidators: true,

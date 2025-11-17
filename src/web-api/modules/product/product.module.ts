@@ -11,6 +11,7 @@ import { ProductSyncService } from '../../../application/services/product-sync.s
 import { LoggingModule } from '../../../infrastructure/modules/logging.module';
 import { MongodbModule } from '../../../infrastructure/modules/mongodb.module';
 import { ContentfulModule } from '../../../infrastructure/modules/contentful.module';
+import { ProductSyncScheduler } from '../../../infrastructure/schedulers/product-sync.scheduler';
 
 import { ProductController } from '../../../web-api/controllers/product/product.controller';
 
@@ -30,6 +31,7 @@ import { ProductController } from '../../../web-api/controllers/product/product.
       provide: PRODUCT_SYNC_SERVICE,
       useClass: ProductSyncService,
     },
+    ProductSyncScheduler,
   ],
   exports: [PRODUCT_SYNC_SERVICE],
 })
